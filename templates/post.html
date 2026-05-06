@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Swandi Blog{% endblock %}
+
+{% block content %}
+<article class="post-detail">
+
+    <h1>{{ post.title }}</h1>
+    <div class="meta" style="margin-bottom: 1rem; color: var(--text-secondary);">
+        {{ post.created_at.strftime('%B %d, %Y') }}
+        <!-- • By {{ post.author.name }} -->
+    </div>
+    <div class="post-content" style="padding-bottom: 1rem; border-bottom: 1px solid var(--card-border);">
+        {{ post.content | safe }}
+    </div>
+
+    <!-- Comments Section -->
+    <div style="margin-top: 1rem;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 2rem;">Discussion</h2>
+
+        {% if user %}
+        <form action="/post/{{ post.id }}/comment" method="POST" style="margin-bottom: 3rem;">
+            <div class="form-group">
+                <textarea name="content" placeholder="Share your thoughts..."
+                    style="min-height: 120px; font-size: 0.95rem;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+        {% else %}
+        <div class="post-card" style="padding: 1.5rem; text-align: center; margin-bottom: 3rem;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Please login to join the discussion.</p>
+            <a href="/login" class="btn btn-outline">Login with Google</a>
+        </div>
+        {% endif %}
+
+        <div class="comments-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% macro render_comment(comment, depth=0) %}
+            <div class="comment-item"
+                style="padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-left: {{ depth * 2 }}rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 600; font-size: 0.95rem;">{{ comment.user.name }}</span>
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">{{ comment.created_at.strftime('%b
+                        %d, %Y') }}</span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.8rem;">{{
+                    comment.content }}</p>
+
+                {% if user %}
+                <button onclick="toggleReplyForm({{ comment.id }})"
+                    style="background: none; border: none; color: var(--accent); font-size: 0.8rem; cursor: pointer; padding: 0;">Reply</button>
+                <form id="reply-form-{{ comment.id }}" action="/post/{{ post.id }}/comment" method="POST"
+                    style="display: none; margin-top: 1rem;">
+                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <textarea name="content" placeholder="Write a reply..."
+                            style="min-height: 80px; font-size: 0.9rem; padding: 0.8rem;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Post Reply</button>
+                </form>
+                {% endif %}
+
+                {% if comment.replies %}
+                <div style="margin-top: 1rem;">
+                    {% for reply in comment.replies %}
+                    {{ render_comment(reply, depth + 1) }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endmacro %}
+
+            {% for comment in comments %}
+            {{ render_comment(comment) }}
+            {% else %}
+            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No comments yet. Be the first to
+                share your thoughts!</p>
+            {% endfor %}
+        </div>
+    </div>
+</article>
+
+<script>
+    function toggleReplyForm(commentId) {
+        const form = document.getElementById(`reply-form-${commentId}`);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+
+<div style="margin-top: 4rem;">
+    <a href="/" class="btn btn-outline">← Back to Home</a>
+</div>
+{% endblock %}

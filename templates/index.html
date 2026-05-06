@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>The Daily Insight</h1>
+    <p
+        style="font-family: var(--nyt-font-sans); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">
+        Exploring Technology, Policy, and Innovation</p>
+</div>
+
+<div class="post-list">
+    {% for post in posts %}
+    <article class="post-card">
+
+        <!-- By {{ post.author.name }} -->
+        <h2><a href="/post/{{ post.id }}" style="text-decoration: none; color: inherit;">{{ post.title }}</a></h2>
+        <div class="meta">{{ post.created_at.strftime('%B %d, %Y') }} •</div>
+        <p>{{ post.content | striptags | truncate(200) }}</p>
+        <a href="/post/{{ post.id }}" class="read-more">Read full story →</a>
+    </article>
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary);">No posts yet. Stay tuned!</p>
+    {% endfor %}
+</div>
+{% endblock %}

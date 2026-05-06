@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Moderate Comments - Swandi Blog{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Moderate Comments</h1>
+    <a href="/admin" class="btn btn-outline">Manage Posts</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Post</th>
+            <th>Comment</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for comment in comments %}
+        <tr>
+            <td style="font-family: var(--nyt-font-sans); font-size: 0.8rem; font-weight: 700;">{{ comment.user.name }}</td>
+            <td style="font-family: var(--nyt-font-sans); font-size: 0.8rem;"><a href="/post/{{ comment.post.id }}" style="color: inherit;">{{ comment.post.title | truncate(30) }}</a></td>
+            <td style="font-size: 0.9rem;">{{ comment.content | truncate(100) }}</td>
+            <td style="font-family: var(--nyt-font-sans); font-size: 0.7rem; color: var(--text-secondary);">{{ comment.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+                <form action="/admin/comment/delete/{{ comment.id }}" method="POST" style="display: inline;">
+                    <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-family: var(--nyt-font-sans); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No comments found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

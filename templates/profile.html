@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Swandi Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container animate-fade">
+    <div class="post-card" style="margin-bottom: 3rem; text-align: center;">
+        <div style="width: 100px; height: 100px; background: var(--accent); border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: white;">
+            {{ user.name[0] | upper }}
+        </div>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ user.name }}</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">{{ user.email }}</p>
+        <span class="btn btn-outline" style="font-size: 0.8rem; pointer-events: none; opacity: 0.8;">Role: {{ user.role | capitalize }}</span>
+    </div>
+
+    {% if user.role == 'admin' %}
+    <div class="admin-header">
+        <h2>My Published Stories</h2>
+        <a href="/admin/post/new" class="btn btn-primary">New Story</a>
+    </div>
+
+    <div class="post-list">
+        {% for post in posts %}
+        <article class="post-card" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">{{ post.title }}</h3>
+                    <div class="meta" style="margin-bottom: 0;">{{ post.created_at.strftime('%B %d, %Y') }}</div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="/admin/post/edit/{{ post.id }}" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Edit</a>
+                    <a href="/post/{{ post.id }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">View</a>
+                </div>
+            </div>
+        </article>
+        {% else %}
+        <p style="text-align: center; color: var(--text-secondary);">You haven't written any stories yet.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="post-card" style="text-align: center; padding: 3rem;">
+        <h2 style="margin-bottom: 1rem;">Welcome to Swandi Blog!</h2>
+        <p style="color: var(--text-secondary);">You are currently a <strong>visitor</strong>. Explore our latest insights and innovations on the homepage.</p>
+        <a href="/" class="btn btn-primary" style="margin-top: 1.5rem;">Browse Stories</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

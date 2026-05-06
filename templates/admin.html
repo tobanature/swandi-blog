@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Swandi Blog{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Manage Posts</h1>
+    <a href="/admin/post/new" class="btn btn-primary">Create New Post</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for post in posts %}
+        <tr>
+            <td>{{ post.title }}</td>
+            <td>{{ post.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+                <a href="/admin/post/edit/{{ post.id }}" style="color: var(--accent); text-decoration: none; margin-right: 1rem;">Edit</a>
+                <form action="/admin/post/delete/{{ post.id }}" method="POST" style="display: inline;">
+                    <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-family: inherit;">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3" style="text-align: center;">No posts found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
