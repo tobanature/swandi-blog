@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "8081:8081"
+      - "8082:8082"
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:${MYSQL_ROOT_PASSWORD}@db/swandi_blog
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
