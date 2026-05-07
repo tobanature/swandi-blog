@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:${MYSQL_ROOT_PASSWORD}@db/swandi_blog
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -24,7 +24,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=swandi_blog
     ports:
-      - "3306:3306"
+      - "3308:3308"
     healthcheck:
       test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1" ]
       interval: 10s
