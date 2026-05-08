@@ -33,7 +33,7 @@
         <!-- Hidden input to store HTML content -->
         <input type="hidden" name="content" id="content-input">
         <div id="editor-container" style="min-height: 400px; font-family: var(--nyt-font-body); font-size: 1.1rem; border: 1px solid var(--border-color);">
-            {{ post.content | safe if post else '' }}
+            {{ post.content | clean_empty_p | safe if post else '' }}
         </div>
     </div>
     <div class="form-actions">

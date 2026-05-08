@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import json
 import nh3
+import re
 from datetime import datetime
 
 load_dotenv()
@@ -78,6 +79,12 @@ def get_current_user():
 @app.context_processor
 def inject_user():
     return dict(user=get_current_user())
+
+@app.template_filter('clean_empty_p')
+def clean_empty_p(content):
+    if not content:
+        return ""
+    return re.sub(r'<p>\s*(?:<br\s*/?>)?\s*</p>', '', content)
 
 @app.route('/')
 def index():
@@ -182,6 +189,9 @@ def new_post():
         # Sanitize HTML
         content = nh3.clean(raw_content, tags={'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'blockquote', 'pre', 'ul', 'ol', 'li', 'a', 'img'}, attributes={'a': {'href'}, 'img': {'src', 'alt'}})
         
+        # Remove empty paragraphs
+        content = re.sub(r'<p>\s*(?:<br\s*/?>)?\s*</p>', '', content)
+        
         post = Post(title=title, content=content, author_id=user.id)
         
         created_at_str = request.form.get('created_at')
@@ -209,6 +219,9 @@ def edit_post(post_id):
         raw_content = request.form.get('content')
         # Sanitize HTML
         post.content = nh3.clean(raw_content, tags={'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'blockquote', 'pre', 'ul', 'ol', 'li', 'a', 'img'}, attributes={'a': {'href'}, 'img': {'src', 'alt'}})
+        
+        # Remove empty paragraphs
+        post.content = re.sub(r'<p>\s*(?:<br\s*/?>)?\s*</p>', '', post.content)
         
         created_at_str = request.form.get('created_at')
         if created_at_str:
