@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, url_for, session, render_template, request, abort
+from flask import Flask, redirect, url_for, session, render_template, request, abort, make_response
 from werkzeug.utils import secure_filename
 from authlib.integrations.flask_client import OAuth
 from models import db, User, Post, Comment
@@ -86,6 +86,18 @@ def clean_empty_p(content):
         return ""
     return re.sub(r'<p>\s*(?:<br\s*/?>)?\s*</p>', '', content)
 
+@app.template_filter('extract_image')
+def extract_image(content):
+    if not content:
+        return None
+    match = re.search(r'<img[^>]+src="([^">]+)"', content)
+    if match:
+        url = match.group(1)
+        if url.startswith('/'):
+            return request.host_url.rstrip('/') + url
+        return url
+    return None
+
 @app.route('/')
 def index():
     posts = Post.query.order_by(Post.created_at.desc()).all()
@@ -97,6 +109,42 @@ def post_detail(post_id):
     # Fetch only top-level comments
     comments = Comment.query.filter_by(post_id=post_id, parent_id=None).order_by(Comment.created_at.asc()).all()
     return render_template('post.html', post=post, comments=comments)
+
+@app.route('/sitemap.xml')
+def sitemap():
+    posts = Post.query.order_by(Post.created_at.desc()).all()
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Homepage
+    xml += '  <url>\n'
+    xml += f'    <loc>{request.host_url}</loc>\n'
+    xml += '    <changefreq>daily</changefreq>\n'
+    xml += '    <priority>1.0</priority>\n'
+    xml += '  </url>\n'
+    
+    # Posts
+    for post in posts:
+        xml += '  <url>\n'
+        xml += f'    <loc>{request.host_url.rstrip("/")}/post/{post.id}</loc>\n'
+        if post.created_at:
+            xml += f'    <lastmod>{post.created_at.strftime("%Y-%m-%d")}</lastmod>\n'
+        xml += '    <changefreq>monthly</changefreq>\n'
+        xml += '    <priority>0.8</priority>\n'
+        xml += '  </url>\n'
+        
+    xml += '</urlset>'
+    
+    response = make_response(xml)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
+
+@app.route('/robots.txt')
+def robots():
+    txt = f"User-agent: *\nDisallow: /admin\nDisallow: /login\n\nSitemap: {request.host_url.rstrip('/')}/sitemap.xml\n"
+    response = make_response(txt)
+    response.headers['Content-Type'] = 'text/plain'
+    return response
 
 @app.route('/post/<int:post_id>/comment', methods=['POST'])
 def add_comment(post_id):

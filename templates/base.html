@@ -11,6 +11,19 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Personal blog exploring Technology, Policy, and Innovation.{% endblock %}">
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <meta property="og:site_name" content="Swandi Pangaribuan">
+    {% block og_meta %}
+    <meta property="og:title" content="Swandi Pangaribuan">
+    <meta property="og:description" content="Personal blog of Swandi Pangaribuan">
+    <meta property="og:image" content="{{ url_for('static', filename='img/profile.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    {% endblock %}
     {% block head %}{% endblock %}
 </head>
 

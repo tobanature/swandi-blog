@@ -2,6 +2,21 @@
 
 {% block title %}{{ post.title }} - Swandi Blog{% endblock %}
 
+{% block meta_description %}{{ post.content | striptags | truncate(150) }}{% endblock %}
+
+{% block og_meta %}
+<meta property="og:title" content="{{ post.title }}">
+<meta property="og:description" content="{{ post.content | striptags | truncate(150) }}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ request.url }}">
+{% set post_img = post.content | extract_image %}
+{% if post_img %}
+<meta property="og:image" content="{{ post_img }}">
+{% else %}
+<meta property="og:image" content="{{ url_for('static', filename='img/profile.png', _external=True) }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <article class="post-detail">
 
