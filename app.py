@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import json
 import nh3
+from datetime import datetime
 
 load_dotenv()
-
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -183,6 +183,14 @@ def new_post():
         content = nh3.clean(raw_content, tags={'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'blockquote', 'pre', 'ul', 'ol', 'li', 'a', 'img'}, attributes={'a': {'href'}, 'img': {'src', 'alt'}})
         
         post = Post(title=title, content=content, author_id=user.id)
+        
+        created_at_str = request.form.get('created_at')
+        if created_at_str:
+            try:
+                post.created_at = datetime.fromisoformat(created_at_str)
+            except ValueError:
+                pass
+
         db.session.add(post)
         db.session.commit()
         return redirect(url_for('admin'))
@@ -202,6 +210,13 @@ def edit_post(post_id):
         # Sanitize HTML
         post.content = nh3.clean(raw_content, tags={'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'blockquote', 'pre', 'ul', 'ol', 'li', 'a', 'img'}, attributes={'a': {'href'}, 'img': {'src', 'alt'}})
         
+        created_at_str = request.form.get('created_at')
+        if created_at_str:
+            try:
+                post.created_at = datetime.fromisoformat(created_at_str)
+            except ValueError:
+                pass
+
         db.session.commit()
         return redirect(url_for('admin'))
     
@@ -254,7 +269,6 @@ def upload_image():
     if file:
         filename = secure_filename(file.filename)
         # Add timestamp to filename to avoid collisions
-        from datetime import datetime
         filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return {"url": url_for('static', filename=f'uploads/{filename}')}
@@ -270,14 +284,25 @@ def ai_assist():
     current_content = data.get('content', '')
     title = data.get('title', '')
 
-    system_prompt = f"""Kamu adalah asisten penulis blog profesional yang ahli dalam gaya penulisan bahasa Indonesia yang menarik dan informatif. 
-Tugasmu adalah membantu penulis mengembangkan tulisannya berdasarkan instruksi berikut.
-Judul artikel: {title}
-Konten saat ini: {current_content}
+    system_prompt = f"""Anda adalah editor dan penulis blog profesional berkaliber tinggi.
+Tugas Anda adalah mengembangkan, memperbaiki, atau menulis ulang konten berdasarkan instruksi pengguna dengan gaya bahasa Indonesia yang menarik dan informatif.
 
-Instruksi pengguna: {prompt}
+<Konteks>
+Judul Artikel: {title}
+Konten Saat Ini: {current_content}
+</Konteks>
 
-Berikan output berupa draf teks yang sudah dikembangkan atau diperbaiki sesuai instruksi. Jawablah langsung dengan konten tulisan saja."""
+<Instruksi_Pengguna>
+{prompt}
+</Instruksi_Pengguna>
+
+<Aturan_Penulisan>
+1. SUBSTANSI: Pertahankan makna dan pesan utama dari konten asli. Perkaya dengan informasi relevan yang bermanfaat bagi pembaca.
+2. STRUKTUR: Buat paragraf yang padat dan berisi (idealnya 3-5 kalimat per paragraf). Hindari paragraf satu kalimat.
+3. FORMAT: Output WAJIB berupa HTML murni (gunakan tag <p>, <strong>, <em>, <h2>, <h3>, <ul>, <li> sesuai kebutuhan artikel).
+4. RESTRUKSI: DILARANG KERAS membungkus output dengan markdown code blocks (seperti ```html).
+5. RESTRUKSI: Jawablah LANGSUNG dengan hasil konten HTML. DILARANG KERAS menggunakan kalimat basa-basi seperti "Berikut drafnya", "Tentu", dll.
+</Aturan_Penulisan>"""
 
     try:
         response = model.generate_content(system_prompt)
@@ -286,4 +311,4 @@ Berikan output berupa draf teks yang sudah dikembangkan atau diperbaiki sesuai i
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8082, debug=True)
+    app.run(host='127.0.0.1', port=8082, debug=True)
